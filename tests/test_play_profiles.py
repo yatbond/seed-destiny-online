@@ -5,6 +5,7 @@ import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 import zipfile
+from unittest.mock import patch
 
 from seedrooms.play_profiles import cabinet_initialized, configure_cabinet, generate_play_profile
 from seedrooms.profiles import ProfileError
@@ -16,7 +17,7 @@ class PlayProfilesTest(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.exe = self.root / "Play.exe"
-        self.exe.write_bytes(b"MZ\0SEED_UEPCB_BRIDGE_PORT\0prepare-cabinet")
+        self.exe.write_bytes(b"MZ\0SEED_UEPCB_BRIDGE_PORT\0prepare-cabinet\0SEED_GL_SWAP_INTERVAL")
         self.iso = self.root / "game.iso"
         disc = bytearray(17 * 2048)
         disc[16 * 2048:16 * 2048 + 7] = b"\x01CD001\x01"
@@ -70,6 +71,15 @@ class PlayProfilesTest(unittest.TestCase):
         self.assertEqual(profile.backup_ram.read_bytes(), b"x" * 32768)
         with self.assertRaises(ProfileError):
             self.profile(renderer="Vulkan", scale=3)
+
+    def test_enhanced_sync_and_old_runtime_guard(self):
+        with patch.dict("os.environ", {"SEED_GL_SWAP_INTERVAL": "0"}):
+            enhanced = self.profile(renderer="OpenGL", scale=3)
+            self.assertEqual(enhanced.environment["SEED_GL_SWAP_INTERVAL"], "1")
+            self.assertNotIn("SEED_GL_SWAP_INTERVAL", self.profile().environment)
+        self.exe.write_bytes(b"MZ\0SEED_UEPCB_BRIDGE_PORT\0prepare-cabinet")
+        with self.assertRaisesRegex(ProfileError, "updated bundled emulator"):
+            self.profile(renderer="OpenGL", scale=3)
 
 
 if __name__ == "__main__":

@@ -1,18 +1,23 @@
 {
   "all_exit_codes_zero": true,
-  "emulator_sha256": "2365bb16e044a1763a8debdb322d7fec1679359603107e8c988314f9643ea882",
-  "enhanced_graphics": "Unqualified: user-reported flickering and observed black scenery in OpenGL 3x. Native Vulkan recommended.",
+  "enhanced_graphics": "Display synchronization enabled and driver-confirmed; visual confirmation pending. Missing scenery unresolved.",
   "sent_frames": 136443,
   "delivered_frames": 409329,
   "installed_transport_selftest_passed": true,
-  "version": "0.3.1",
+  "version": "0.3.2",
   "local_timed_round_completed": true,
   "external_bios_required": false,
   "installed_game_preparation_passed": true,
   "real_game_instances": 4,
-  "automated_tests_passed": 26,
+  "automated_tests_passed": 27,
   "clean_machine_verified": false,
   "internet_match_verified": false,
   "enhanced_flicker_fixed": false,
-  "native_emulator_unchanged_since_0_3_0": true
+  "native_emulator_unchanged_since_0_3_0": false,
+  "previous_gameplay_emulator_sha256": "2365bb16e044a1763a8debdb322d7fec1679359603107e8c988314f9643ea882",
+  "emulator_sha256": "2c061f53dc1ff69b91db235eba9b9a4ffa70ec47775d227c4cafd813f460a035",
+  "gameplay_qualification_version": "0.3.0; not repeated with 0.3.2",
+  "enhanced_presentation_patch_applied": true,
+  "enhanced_three_minute_run_exit": 0,
+  "enhanced_driver_swap_interval": 1
 }

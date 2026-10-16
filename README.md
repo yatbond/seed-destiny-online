@@ -1,15 +1,15 @@
-# SEED Destiny Online 0.3.1 — Windows experimental release
+# SEED Destiny Online 0.3.2 — Windows experimental release
 
-[Download the Windows installer](https://github.com/yatbond/seed-destiny-online/releases/tag/v0.3.1).
-This is a prerelease: native Vulkan is recommended; enhanced OpenGL flickers on the tested PC, and separate-PC Internet matches are not yet qualified. Bring your own disc ISO and dongle BIN. Game files are not included.
+[Download the Windows installer](https://github.com/yatbond/seed-destiny-online/releases/tag/v0.3.2).
+This prerelease adds display synchronization for Enhanced mode. Visual confirmation is pending; missing scenery and separate-PC Internet qualification remain outstanding. Bring your own disc ISO and dongle BIN.
 
 Runs the original NM00034 / GSD1 **SEED Destiny: Rengou vs. Z.A.F.T. II** with a modified Play! emulator and private, passcode-protected four-player rooms. Each player supplies their original disc ISO and dongle BIN. **No separate arcade BIOS is required.**
 
-Local four-instance 2-on-2 combat has been verified through the encrypted room relay, including movement, attacks and damage. A fresh-profile launcher test completed a timed round and showed normal results on all four cabinets. Enhanced 3× rendering has unresolved flickering and scenery defects; use Original Vulkan. Internet gameplay between separate PCs remains unverified; router reachability and real Internet latency need an external test.
+Local four-instance 2-on-2 combat has been verified through the encrypted room relay, including movement, attacks and damage. A fresh-profile launcher test completed a timed round and showed normal results on all four cabinets. Enhanced 3× now synchronizes presentation to the display to address reported flashing. The driver setting is verified; visual confirmation is pending and missing scenery remains unresolved. Original Vulkan remains recommended. Internet gameplay between separate PCs remains unverified; router reachability and real Internet latency need an external test.
 
 ## Install and play
 
-Use `dist/SeedDestinyOnline-Setup-0.3.1.exe`. Installation is per Windows account, with no administrator rights needed. It includes the launcher, emulator, libraries and corresponding source archives. Original game files and saved machine states are excluded. The older 0.2.1 installer is superseded.
+Use `dist/SeedDestinyOnline-Setup-0.3.2.exe`. Installation is per Windows account, with no administrator rights needed. It includes the launcher, emulator, libraries and corresponding source archives. Original game files and saved machine states are excluded. The older 0.2.1 installer is superseded.
 
 1. Open **Game & graphics**, select your disc ISO and original dongle BIN, and save.
 2. In **Playroom**, paste the host's invitation. Enter your name and separately supplied passcode, then join.
@@ -18,7 +18,7 @@ Use `dist/SeedDestinyOnline-Setup-0.3.1.exe`. Installation is per Windows accoun
 
 Keyboard: **Backspace** inserts credit, **Enter** starts, arrows move, and **A / S / X / Z** map to Square / Triangle / Circle / Cross. Configure a gamepad in the emulator's controller settings. **Alt+Enter** toggles fullscreen. Avoid saved machine states during linked play.
 
-**Original · Vulkan** uses native resolution and is the recommended mode. **Enhanced 3× · OpenGL** uses 1920 × 1344, preserving the original 4:3 shape. It sharpens existing assets; no replacement textures, lighting or geometry are included. Enhanced has user-reported window flickering on the RTX 5090, while native Vulkan windows were stable. Some enhanced captures also contain black regions in distant scenery. A steady frame rate did not establish visual stability. Use Original while these enhanced-renderer defects are investigated.
+**Original · Vulkan** uses native resolution and is the recommended mode. **Enhanced 3× · OpenGL** uses 1920 × 1344, preserving the original 4:3 shape. It sharpens existing assets; no replacement textures, lighting or geometry are included. Version 0.3.2 enables display synchronization before the enhanced window is created, replacing unsynchronized presentation. The NVIDIA driver reports swap interval 1 and double buffering. This is a targeted change for reported flashing; a successful automated run does not prove temporal visual stability. User confirmation is pending. Black regions in some distant scenery remain unresolved. Original Vulkan remains the stable option.
 
 Separate cabinet settings and saves live under `%LOCALAPPDATA%/SeedDestinyOnline/players/seat-N/Play/`. Original disc/dongle files are read-only inputs. Uninstalling preserves settings and saves. Avoid two instances using the same seat profile. Leaving a room disconnects the game link but keeps the game window open.
 
@@ -60,4 +60,4 @@ Corresponding source, build instructions and notices are installed under `source
 [REA](https://github.com/morluto/rea) informed artifact inspection. Available Windows native analysis did not support this MIPS target; source review and bounded local diagnostics supplied additional evidence. Original game code is not patched or redistributed. This is an unofficial community project.
 
 
-The launcher source in this repository is licensed under GPL-3.0-or-later. See COPYING. Bundled third-party components retain their own notices.
+The launcher source is licensed under GPL-3.0-or-later. See COPYING. Bundled third-party components retain their own notices.

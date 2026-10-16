@@ -183,7 +183,7 @@ class Launcher(tk.Tk):
             self._row(setup, i, label, self.values[key], browse=key)
         ttk.Label(setup, text="Graphics profile").grid(row=6, column=0, sticky="w", pady=14)
         ttk.Combobox(setup, textvariable=self.values["graphics"], values=list(GRAPHICS), state="readonly").grid(row=6, column=1, sticky="ew")
-        ttk.Label(setup, text="Original Vulkan is the recommended mode. Enhanced OpenGL renders at 3× resolution (1920 × 1344), but currently has reported flickering and missing scenery on an NVIDIA RTX 5090. Use Original until the enhanced mode is fixed.", style="Muted.TLabel", wraplength=850).grid(row=7, column=0, columnspan=3, sticky="w", pady=12)
+        ttk.Label(setup, text="Enhanced OpenGL renders at 3× resolution (1920 × 1344) with display synchronization to address flashing. Visual confirmation is pending, and some scenes still have missing scenery. Original Vulkan remains the stable option.", style="Muted.TLabel", wraplength=850).grid(row=7, column=0, columnspan=3, sticky="w", pady=12)
         ttk.Button(setup, text="Save and check files", command=self.save_settings).grid(row=8, column=1, sticky="w", pady=8)
         ttk.Label(setup, text="Each player supplies their disc and dongle. Cabinet setup runs automatically the first time. No separate BIOS is needed. Use Backspace for credit and Enter to start; configure a controller in the game player's settings.", style="Muted.TLabel", wraplength=850).grid(row=9, column=0, columnspan=3, sticky="w", pady=12)
 

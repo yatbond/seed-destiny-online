@@ -1,5 +1,12 @@
-SEED Destiny Online 0.3.1 - experimental release
+SEED Destiny Online 0.3.2 - experimental release
 
+Version 0.3.2 adds synchronized OpenGL presentation to address high-resolution
+window flashing. The launcher enables it automatically for Enhanced mode and
+rejects older runtimes that cannot apply it. The NVIDIA driver confirms
+swap interval 1 and double buffering. Visual confirmation is still pending;
+the separate black-scenery defect is not fixed.
+
+Earlier local gameplay qualification:
 Replaces the BIOS-dependent PCSX2x6 package with a modified Play! runtime.
 No separate BIOS dump is required. Players still provide their disc/dongle.
 Cabinet settings are initialized automatically, with distinct room seat IDs.

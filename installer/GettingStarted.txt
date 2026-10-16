@@ -1,7 +1,7 @@
-SEED DESTINY ONLINE 0.3.1
+SEED DESTINY ONLINE 0.3.2
 
 1. PREPARE YOUR GAME
-Open Game & graphics. Select your NM00034 disc ISO and original dongle BIN. The game player is included; no separate BIOS is needed. Save. Use Original Vulkan graphics. Enhanced OpenGL has reported flickering and missing scenery and is not recommended yet.
+Open Game & graphics. Select your NM00034 disc ISO and original dongle BIN. The game player is included; no separate BIOS is needed. Save. Use Original Vulkan graphics. Enhanced OpenGL now uses display synchronization to address flashing; visual confirmation is pending and missing scenery remains unresolved.
 
 2. JOIN A FRIEND
 Copy the complete invitation from your host. Select Paste invitation in Playroom, enter your name and separately supplied passcode, then Join room and Launch my game. First-run cabinet setup is automatic; allow up to a minute.
@@ -19,7 +19,7 @@ Keyboard: Backspace inserts credit; Enter starts; arrows move; A/S/X/Z map to Sq
 Invitations contain a public certificate, never the passcode or private key. Do not share private-key.pem. Address changes require restarting hosting and sharing a fresh invitation. Leaving a room disconnects the game link but leaves the game window open.
 
 STATUS
-Local four-emulator 2-on-2 combat works. Enhanced graphics is higher resolution but has unresolved flickering and scenery defects. Internet matches and other GPU configurations remain experimental. See README.md for evidence and limits.
+Local four-emulator 2-on-2 combat works. Enhanced graphics includes a display synchronization change for flashing, pending visual confirmation. Missing scenery remains unresolved. Internet matches and other GPU configurations remain experimental. See README.md for evidence and limits.
 
 SOURCE
 Corresponding sources are in sources; notices are in licenses. Preserve them when redistributing. Original game files are excluded.
