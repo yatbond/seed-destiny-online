@@ -1,0 +1,27 @@
+SEED Destiny Online 0.3.1 - experimental release
+
+Replaces the BIOS-dependent PCSX2x6 package with a modified Play! runtime.
+No separate BIOS dump is required. Players still provide their disc/dongle.
+Cabinet settings are initialized automatically, with distinct room seat IDs.
+
+Local 2-on-2 gameplay is verified. A seven-minute test of four fresh launcher
+profiles completed a timed round and showed normal results on every cabinet.
+The relay delivered all 136,443 outgoing Ethernet frames to the other three
+players (409,329 deliveries). All four games exited normally.
+
+The default renderer is native-resolution Vulkan. Optional OpenGL 3x renders
+1920 x 1344, but users reported window flickering while native Vulkan windows
+were stable. Some scenes also show black scenery regions. Use Original Vulkan;
+the enhanced mode is not visually qualified. Testing used an NVIDIA RTX 5090. No replacement art is supplied.
+
+The installed package passed a four-client encrypted transport test and the
+installed emulator initialized a fresh original-game cabinet without a BIOS.
+These tests ran on the development PC, not a clean Windows installation.
+
+Internet matches between separate PCs, latency tolerance and in-game recovery
+from disconnects remain unverified. An earlier profile-generation bug produced
+ignored settings and a result-screen communication error. Corrected profiles
+completed normally; additional hardware combinations still need qualification.
+
+Corresponding patched emulator, Qt and launcher sources and notices are
+included. Original ROMs, BIOS files and saved machine states are excluded.

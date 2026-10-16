@@ -1,0 +1,29 @@
+PRIVATE ROOM HOST SETUP
+
+On the host PC, open Host on this PC and enter the reachable Internet address
+shown by your router, or your configured DNS name. Use TCP port 7443.
+Start the encrypted room server, then create a passcode-protected room.
+
+Router forwarding rule:
+  External port: 7443
+  Protocol: TCP
+  Destination: the Windows host's LAN IPv4 address
+  Internal port: 7443
+
+Reserve that LAN address for the PC in the router's DHCP settings so the rule
+keeps pointing to the same machine. Allow the launcher through Windows Firewall
+on the appropriate network. The installer makes none of these changes.
+
+Use the router's WAN address, not a VPN exit address. Preserve your VPN settings;
+if its routing prevents incoming connections, configure an appropriate app
+exception or use another reachable hosting arrangement. Carrier-grade NAT can
+prevent ordinary forwarding even when the rule is correct.
+
+Copy the invitation and share it with a friend on another Internet connection.
+Give them the passcode separately. They install the same version, provide their
+own disc/dongle, paste the invitation, and join. Seeing their name in the room
+proves a real outside connection. Then test a complete four-player game.
+
+The game bridge uses local loopback ports. Forward only the room server port.
+Keep the host PC awake and the launcher open during play. If the public address
+changes, restart hosting with the new address and issue a fresh invitation.

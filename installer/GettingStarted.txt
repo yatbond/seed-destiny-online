@@ -1,0 +1,26 @@
+SEED DESTINY ONLINE 0.3.1
+
+1. PREPARE YOUR GAME
+Open Game & graphics. Select your NM00034 disc ISO and original dongle BIN. The game player is included; no separate BIOS is needed. Save. Use Original Vulkan graphics. Enhanced OpenGL has reported flickering and missing scenery and is not recommended yet.
+
+2. JOIN A FRIEND
+Copy the complete invitation from your host. Select Paste invitation in Playroom, enter your name and separately supplied passcode, then Join room and Launch my game. First-run cabinet setup is automatic; allow up to a minute.
+
+3. HOST ON THIS PC
+Enter your reachable Internet IP/DNS name and port 7443 in Host on this PC. Start the encrypted server, then create a room with a passcode of at least eight characters. Share the invitation and passcode privately. Keep the app and PC running.
+
+Forward TCP 7443 to this PC and allow the launcher through Windows Firewall. Do not expose the emulator bridge port. VPN routing or carrier-grade NAT can prevent inbound access. Test from a different Internet connection. Installation changes no router, firewall or VPN settings.
+
+4. START THE MATCH
+Wait until all four players have joined, launched and finished linking. Insert credit and start. Choose teams and arena in the game menus. Cabinet IDs are automatic. Ready/start in the launcher only coordinates players.
+
+Keyboard: Backspace inserts credit; Enter starts; arrows move; A/S/X/Z map to Square/Triangle/Circle/Cross. Configure your controller in the emulator's settings. Alt+Enter toggles fullscreen. Avoid saved machine states in linked matches.
+
+Invitations contain a public certificate, never the passcode or private key. Do not share private-key.pem. Address changes require restarting hosting and sharing a fresh invitation. Leaving a room disconnects the game link but leaves the game window open.
+
+STATUS
+Local four-emulator 2-on-2 combat works. Enhanced graphics is higher resolution but has unresolved flickering and scenery defects. Internet matches and other GPU configurations remain experimental. See README.md for evidence and limits.
+
+SOURCE
+Corresponding sources are in sources; notices are in licenses. Preserve them when redistributing. Original game files are excluded.
+

@@ -1,0 +1,10 @@
+SEED Destiny Online 0.3.1 - experimental Windows release
+
+Installs the private-room launcher and modified Play! emulator for NM00034 SEED Destiny: Rengou vs. Z.A.F.T. II.
+
+Each player supplies their original DVD ISO and dongle BIN. No separate BIOS is needed. The installer does not include or download original game files.
+
+Local linked 2-on-2 gameplay has been verified. Use Original Vulkan graphics. Enhanced OpenGL currently has reported flickering and missing scenery on an RTX 5090; its visual stability is not verified. Internet matches between separate PCs still need qualification. Hosting requires a reachable address, router forwarding and firewall access; installation does not modify those settings or your VPN.
+
+Installation is for your Windows account. Uninstalling preserves separate settings and saves. Open-source licenses and corresponding sources are included.
+

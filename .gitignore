@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+dist/
+build/
+local/
+*.iso
+*.chd
+*.bin
+*.backupram
+*.pem
+launcher.json

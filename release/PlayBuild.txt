@@ -1,0 +1,37 @@
+SEED Destiny Online 0.3.0 - emulator source and rebuilding
+
+Base: https://github.com/jpd002/Play-
+Commit: d44bfa1814b729d4a3ed3c6c3a945432d5ee5bbe
+All initialized submodules and local tracked-file changes are included in Play/.
+The source manifest records each file hash and submodule revision. Patches are
+included separately for review. No original game code or game data is included.
+
+The USB Ethernet model incorporates GPL-3.0-or-later code adapted from
+boostedmans-hub/pcsx2x6 at 743953a3905b4fe482cd62e72bd724015ea28880.
+The combined modified emulator is distributed under GPL-3.0-or-later;
+the original Play! files retain their BSD-2-Clause notices.
+
+Build environment: Windows x64, MSVC 14.50, CMake/Ninja, Qt 5.15.2 msvc2019_64.
+Use the x64 Visual Studio developer prompt. Unpack this archive, set QT_ROOT
+and ZLIB_ROOT, then run BuildPlay.cmd. The executable is under
+build/Source/ui_qt/Play.exe. Copy GameConfig.xml beside it. Qt5Core.dll,
+Qt5Gui.dll, Qt5Widgets.dll and platforms/qwindows.dll come from QT_ROOT.
+z.dll is the shared zlib 1.3.2 build, supplied with its source archive.
+The host needs its graphics driver's Vulkan/OpenGL implementation.
+
+Qt's matching unmodified source is qtbase-everywhere-src-5.15.2.tar.xz.
+Qt is dynamically linked and its DLLs can be replaced with compatible modified
+builds. Its source includes its own third-party notices and build instructions.
+Qt was installed from the official Qt online repository using aqtinstall.
+The Windows C/C++ runtime DLLs are Microsoft redistributables, not GPL code.
+
+Modifications include USB Ethernet and loopback room bridging, IOP clock return
+status, automatic cabinet initialization, UNC ISO handling, discrete GPU
+preference, graphics readback and bounded optional diagnostic modes. Diagnostic
+inputs and saves are enabled only by explicit command-line switches. Networking
+is enabled by the launcher's SEED_UEPCB_* environment variables.
+
+The launcher source is in launcher-source-0.3.0.zip. Install Python 3.11+ with
+Tk and cryptography, then run launch.py. The packaged launcher was built with
+PyInstaller 6.22.3 and cryptography 46.0.7; packaging command and Inno Setup
+recipe are in the launcher source. No firewall, VPN or router changes are made.
