@@ -1,26 +1,36 @@
-# SEED Destiny Online 0.3.3 — Windows experimental release
+# SEED Destiny Online 0.4.0 — Windows experimental release
 
-[Download the Windows installer](https://github.com/yatbond/seed-destiny-online/releases/tag/v0.3.3).
-Enhanced 3× now uses the separate game window confirmed stable on the tested PC. Missing scenery and separate-PC Internet match qualification remain outstanding. Bring your own disc ISO and dongle BIN.
+[Download the Windows installer](https://github.com/yatbond/seed-destiny-online/releases/tag/v0.4.0).
+Version 0.4.0 fixes the observed black scenery defect and adds solo play, controller presets/testing, and private-room connection tools. Bring your own disc ISO and dongle BIN.
 
 Runs the original NM00034 / GSD1 **SEED Destiny: Rengou vs. Z.A.F.T. II** with a modified Play! emulator and private, passcode-protected four-player rooms. Each player supplies their original disc ISO and dongle BIN. **No separate arcade BIOS is required.**
 
-Local four-instance 2-on-2 combat has been verified through the encrypted room relay, including movement, attacks and damage. A fresh-profile launcher test completed a timed round and showed normal results on all four cabinets. Enhanced 3× now uses a separate game window, which the user confirmed is stable on the tested RTX 5090 PC. Missing scenery remains unresolved. Public-address encrypted connectivity has passed on the host; a complete Internet match between separate PCs remains unverified.
+The earlier 0.3.0 build verified local four-instance 2-on-2 combat through the encrypted room relay, including movement, attacks and damage. A fresh-profile launcher test completed a timed round and showed normal results on all four cabinets. Enhanced 3× now uses a separate game window, which the user confirmed is stable on the tested RTX 5090 PC. Version 0.4.0 fixes the black scenery defect observed on this PC. Public-address encrypted connectivity has passed on the host; a complete Internet match between separate PCs remains unverified.
 
 ## Install and play
 
-Use `dist/SeedDestinyOnline-Setup-0.3.3.exe`. Installation is per Windows account, with no administrator rights needed. It includes the launcher, emulator, libraries and corresponding source archives. Original game files and saved machine states are excluded. The older 0.2.1 installer is superseded.
+Use `dist/SeedDestinyOnline-Setup-0.4.0.exe`. Installation is per Windows account, with no administrator rights needed. It includes the launcher, emulator, libraries and corresponding source archives. Original game files and saved machine states are excluded. The older 0.2.1 installer is superseded.
 
 1. Open **Game & graphics**, select your disc ISO and original dongle BIN, and save.
-2. In **Playroom**, paste the host's invitation. Enter your name and separately supplied passcode, then join.
-3. Select **Launch my game**. First launch initializes cabinet settings automatically; allow up to a minute. Cabinet IDs 1–4 follow the room seats.
+2. For solo play, select **Play solo**. For online play, open **Playroom**, paste the host's invitation, enter your name and passcode, and select **Join & launch**.
+3. First launch initializes cabinet settings automatically; allow up to a minute. Online cabinet IDs 1–4 follow the room seats. The host can use **Launch my game** after creating a room.
 4. Wait for all four players to launch and finish linking. Insert credit, start, and select teams and arena in the original game menus. The launcher's Ready/start buttons only coordinate players.
 
-Keyboard: **Backspace** inserts credit, **Enter** starts, arrows move, and **A / S / X / Z** map to Square / Triangle / Circle / Cross. In Enhanced mode, **F1** opens controller settings, **Alt+Enter** toggles fullscreen, **Escape** returns to windowed mode, and **Ctrl+R** pauses or resumes. Avoid saved machine states during linked play.
+Keyboard: **Backspace** inserts credit, **Enter** starts, arrows move, and **Z** shoots, **X** performs melee / confirms, **S** jumps / boosts, and **A** changes target. In Enhanced mode, **F1** opens controller settings, **Alt+Enter** toggles fullscreen, **Escape** returns to windowed mode, and **Ctrl+R** pauses or resumes. Avoid saved machine states during linked play.
 
-**Original · Vulkan** uses native resolution and is the recommended mode. **Enhanced 3× · OpenGL** uses 1920 × 1344, preserving the original 4:3 shape. It sharpens existing assets; no replacement textures, lighting or geometry are included. Version 0.3.3 presents Enhanced mode in its own window instead of embedding it inside the emulator interface. The user confirmed this display method is stable on the tested RTX 5090 PC. Display synchronization remains enabled. Normal launches now start automatically, and closing the game shuts down its rendering thread before destroying the display. Black regions in some distant scenery remain unresolved; other GPUs need testing.
+**Original · Vulkan** uses native resolution and is the recommended mode. **Enhanced 3× · OpenGL** uses 1920 × 1344, preserving the original 4:3 shape. It sharpens existing assets; no replacement textures, lighting or geometry are included. Since version 0.3.3, Enhanced mode presents in its own window instead of embedding it inside the emulator interface. The user confirmed this display method is stable on the tested RTX 5090 PC. Display synchronization remains enabled. Normal launches now start automatically, and closing the game shuts down its rendering thread before destroying the display. Version 0.4.0 fixes a reused framebuffer format that erased scenery. A cold 3× gameplay run captured 40 frames without the previous large black regions; other GPUs need testing.
 
 Separate cabinet settings and saves live under `%LOCALAPPDATA%/SeedDestinyOnline/players/seat-N/Play/`. Original disc/dongle files are read-only inputs. Uninstalling preserves settings and saves. Avoid two instances using the same seat profile. Leaving a room disconnects the game link but keeps the game window open.
+
+## Solo, controllers and room checks
+
+**Play solo** starts the original standalone arcade mode without a room or server. Solo settings live under `players/solo/Play` and never change the four online seat profiles. This offers a convenient place to practise; it does not add infinite health or change the game's rules.
+
+**Controls** supplies Xbox/XInput and keyboard presets, a live XInput button/stick/trigger tester, and mapping instructions. Connect a controller before launching. Presets are applied at the next game launch with backups; later custom F1 mappings are retained until you explicitly choose a new preset. DirectInput devices use the original Controller Manager. Each PC uses Pad1 regardless of its room seat. Physical controller input has not yet been tested on this PC because no XInput controller was connected. See `Controls.txt` for the full guide.
+
+**Check connection** verifies the server connection and TLS certificate before joining. Once joined, periodic authenticated requests report server round-trip time, variation and timed-out samples. These numbers measure relay requests, not game latency or packet loss. The newer host shares preparing/game-link/error status and preferred teams. Team preferences allow two players per team but must still be selected inside the original game. They do not reassign cabinet IDs. Older hosts can still relay gameplay and report latency, but must be updated for shared status and preferences.
+
+**Join & launch** starts preparation only after a successful room join. Bad passcodes never launch the game. A game-link status means the emulator connected to its local bridge; it does not prove the game has finished loading or that a match succeeded. See `InternetTest.txt` for the separate-PC match checklist.
 
 ## Host a private Internet room
 
@@ -49,7 +59,7 @@ Passcodes use salted scrypt hashes; remote connections require certificate-verif
 
 Run `python -m unittest discover -s tests -v` here. Tests use temporary local ports and do not launch the game. `SeedDestinyOnline.exe --self-test output.json` checks installed dependencies and four-client encrypted transport; it is not a game or Internet test. Original binaries, saved game states and investigation screenshots are excluded from distribution.
 
-Outstanding checks include separate-PC Internet matches, actual gameplay disconnect/rejoin, other GPUs, and clean-machine installation beyond this development PC. The four-cabinet timed-round qualification used version 0.3.0 and has not been repeated with 0.3.3.
+Outstanding checks include separate-PC Internet matches, actual gameplay disconnect/rejoin, other GPUs, and clean-machine installation beyond this development PC. The four-cabinet timed-round qualification used version 0.3.0 and has not been repeated with 0.4.0.
 
 ## Source and credits
 

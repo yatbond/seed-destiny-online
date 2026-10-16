@@ -10,6 +10,7 @@ import ssl
 import subprocess
 import sys
 import threading
+import time
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
@@ -17,6 +18,7 @@ from .client import RoomClient, EmulatorBridge
 from .transport import RelayServer
 from .play_profiles import generate_play_profile, cabinet_initialized, configure_cabinet
 from .hosting import host_identity, import_invitation, make_invitation, validate_host
+from .connection_health import check_connection
 
 APP_DIR = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "SeedDestinyOnline"
 PROJECT = Path(__file__).resolve().parent.parent
@@ -50,8 +52,14 @@ class Launcher(tk.Tk):
         self.host_address = None
         self.host_certificate = None
         self.starting_host = False
+        self.health_busy = False
+        self.next_health_check = 0
+        self.last_game_running = False
+        self.last_bridge_connected = False
+        self.controller_reader = None
+        self.testing_controller = False
         self.status = tk.StringVar(value="Create a private room or join with a room code and passcode.")
-        defaults = {"name": "Player", "host": "127.0.0.1", "port": "7443", "tls": False, "ca": "", "iso": "", "dongle": "", "emulator": "", "graphics": "Original · Vulkan"}
+        defaults = {"name": "Player", "host": "127.0.0.1", "port": "7443", "tls": False, "ca": "", "iso": "", "dongle": "", "emulator": "", "graphics": "Original · Vulkan", "public_host":"", "host_port":"7443"}
         if SETTINGS.exists():
             try:
                 defaults.update(json.loads(SETTINGS.read_text(encoding="utf-8")))
@@ -75,9 +83,13 @@ class Launcher(tk.Tk):
         self.values = {k: (tk.BooleanVar(value=v) if k == "tls" else tk.StringVar(value=v)) for k, v in defaults.items()}
         self.passcode = tk.StringVar()
         self.code = tk.StringVar()
-        self.public_host = tk.StringVar()
-        self.host_port = tk.StringVar(value="7443")
+        self.public_host = self.values["public_host"]
+        self.host_port = self.values["host_port"]
         self.host_status = tk.StringVar(value="The host must keep this app and PC running during the match.")
+        self.connection_status = tk.StringVar(value="Connection not checked")
+        self.team_preference = tk.StringVar(value="Auto")
+        self.controller_status = tk.StringVar(value="Connect a controller, then choose Test controller.")
+        self.controller_slot = tk.StringVar(value="1")
         self._styles()
         self._layout()
         self.protocol("WM_DELETE_WINDOW", self.close_app)
@@ -119,8 +131,28 @@ class Launcher(tk.Tk):
         tabs.pack(fill="both", expand=True)
         room = ttk.Frame(tabs, padding=14)
         setup = ttk.Frame(tabs, padding=20)
+        solo = ttk.Frame(tabs, padding=20)
+        controls = ttk.Frame(tabs, padding=20)
+        tabs.add(solo, text="Play solo")
         tabs.add(room, text="Playroom")
+        tabs.add(controls, text="Controls")
         tabs.add(setup, text="Game & graphics")
+        ttk.Label(solo, text="PLAY ON YOUR OWN", style="Section.TLabel").pack(anchor="w", pady=(0,14))
+        ttk.Label(solo, text="Start the original arcade game without a room or an Internet connection. Use it to practise movement and attacks. Your solo cabinet settings are separate from online play.", wraplength=830).pack(anchor="w", pady=10)
+        self.solo_button = ttk.Button(solo, text="Play solo", style="Accent.TButton", command=self.launch_solo)
+        self.solo_button.pack(anchor="w", pady=16)
+        ttk.Label(solo, text="First start prepares the cabinet automatically. Insert credit with Backspace, then press Enter.\n\nArrow keys: movement   ·   Z: shoot   ·   X: melee / confirm\nS: jump / boost   ·   A: change target\nF1: controller mapping in Enhanced mode\nAlt+Enter: fullscreen   ·   Escape: windowed   ·   Ctrl+R: pause/resume\n\nThis uses the original arcade mode; it does not add an infinite-health training mode.", wraplength=830, style="Muted.TLabel").pack(anchor="w", pady=14)
+        ttk.Label(controls, text="YOUR CONTROLLER", style="Section.TLabel").pack(anchor="w", pady=(0,12))
+        ttk.Label(controls, text="Xbox-compatible controllers: select a preset and test the buttons here. Other Windows controllers: use the game's Controller Manager for manual mapping. Each PC uses Pad1, regardless of its room seat.", wraplength=830).pack(anchor="w", pady=10)
+        presets = ttk.Frame(controls)
+        presets.pack(anchor="w", pady=12)
+        ttk.Label(presets, text="Xbox controller number").pack(side="left", padx=(0,10))
+        ttk.Combobox(presets, textvariable=self.controller_slot, values=("1","2","3","4"), width=4, state="readonly").pack(side="left")
+        ttk.Button(presets, text="Use Xbox preset", command=lambda:self.set_controller_preset("xbox")).pack(side="left", padx=10)
+        ttk.Button(presets, text="Use keyboard preset", command=lambda:self.set_controller_preset("keyboard")).pack(side="left")
+        ttk.Button(controls, text="Test controller / Stop test", command=self.toggle_controller_test).pack(anchor="w", pady=10)
+        ttk.Label(controls, textvariable=self.controller_status, wraplength=830).pack(anchor="w", pady=12)
+        ttk.Label(controls, text="Xbox preset: X shoots, Y uses melee, A jumps/boosts, B changes target. D-pad moves; View/Back gives credit; Menu/Start starts.\nKeyboard: Z shoots, X uses melee/confirms, S jumps/boosts, A changes target.\n\nF1 mapping names: CROSS = Shoot; CIRCLE = Melee/confirm; TRIANGLE = Jump/boost; SQUARE = Change target. Select Pad1, double-click a row, hold an input for three seconds, then Apply and OK. Original mode has Controller Manager in its settings menu.\n\nPresets apply at the next launch with backups. F1 custom edits are kept until you explicitly select a new preset. Configure before joining a match.", wraplength=830, style="Muted.TLabel").pack(anchor="w", pady=10)
         hosting = ttk.Frame(tabs, padding=20)
         tabs.add(hosting, text="Host on this PC")
         hosting.columnconfigure(1, weight=1)
@@ -144,13 +176,17 @@ class Launcher(tk.Tk):
         ttk.Checkbutton(row, text="TLS", variable=self.values["tls"]).pack(side="left", padx=12)
         ttk.Button(row, text="Local test server", command=self.local_server).pack(side="left")
         ttk.Button(row, text="Paste invitation", command=self.paste_invite).pack(side="left", padx=(8, 0))
-        self._row(room, 2, "Room code", self.code)
-        self._row(room, 3, "Passcode", self.passcode, show="•")
+        credentials = ttk.Frame(room)
+        credentials.grid(row=2, column=0, columnspan=2, sticky="ew", pady=4)
+        ttk.Label(credentials, text="Room code").pack(side="left", padx=(0,12))
+        ttk.Entry(credentials, textvariable=self.code, width=14).pack(side="left")
+        ttk.Label(credentials, text="Passcode").pack(side="left", padx=16)
+        ttk.Entry(credentials, textvariable=self.passcode, show="•").pack(side="left", fill="x", expand=True)
         buttons = ttk.Frame(room)
         buttons.grid(row=4, column=0, columnspan=2, sticky="ew", pady=8)
         self.create_button = ttk.Button(buttons, text="Create private room", style="Accent.TButton", command=lambda: self.connect_room(True))
         self.create_button.pack(side="left", padx=(0, 8))
-        self.join_button = ttk.Button(buttons, text="Join room", command=lambda: self.connect_room(False))
+        self.join_button = ttk.Button(buttons, text="Join & launch", command=self.join_launch)
         self.join_button.pack(side="left", padx=8)
         self.leave_button = ttk.Button(buttons, text="Leave", command=self.leave_room, state="disabled")
         self.leave_button.pack(side="left", padx=8)
@@ -163,12 +199,18 @@ class Launcher(tk.Tk):
         seats.columnconfigure((0, 1), weight=1)
         self.seats = []
         for i in range(4):
-            card = ttk.Frame(seats, style="Card.TFrame", padding=10)
+            card = ttk.Frame(seats, style="Card.TFrame", padding=8)
             card.grid(row=i % 2, column=i // 2, sticky="ew", padx=(0, 10), pady=5)
             label = ttk.Label(card, text=f"CABINET {i + 1}   ·   Waiting for player", style="Card.TLabel")
             label.pack(anchor="w")
             self.seats.append(label)
-        ttk.Label(room, text="Lobby seats identify cabinets. Choose the 2-on-2 teams in the game's own menu.", style="Muted.TLabel", wraplength=900).grid(row=7, column=0, columnspan=2, sticky="w", pady=10)
+        team_row = ttk.Frame(room)
+        team_row.grid(row=7, column=0, columnspan=2, sticky="ew", pady=8)
+        ttk.Label(team_row, text="Preferred team").pack(side="left", padx=(0,8))
+        team_choice = ttk.Combobox(team_row, textvariable=self.team_preference, values=("Auto","A","B"), width=6, state="readonly")
+        team_choice.pack(side="left")
+        team_choice.bind("<<ComboboxSelected>>", lambda _:self.publish_player_status())
+        ttk.Label(team_row, text="Confirm these teams in the game's menu.", style="Muted.TLabel").pack(side="left", padx=12)
         actions = ttk.Frame(room)
         actions.grid(row=8, column=0, columnspan=2, sticky="ew", pady=5)
         self.launch_button = ttk.Button(actions, text="Launch my game", style="Accent.TButton", command=self.launch_game, state="disabled")
@@ -177,13 +219,16 @@ class Launcher(tk.Tk):
         self.ready_button.pack(side="left", padx=5)
         self.start_button = ttk.Button(actions, text="All ready · coordinate start", command=self.start_match, state="disabled")
         self.start_button.pack(side="right")
-        ttk.Label(room, text="All four players should join and launch before starting. Internet connection quality affects match speed.", style="Muted.TLabel", wraplength=900).grid(row=9, column=0, columnspan=2, sticky="w", pady=12)
+        check_row = ttk.Frame(room)
+        check_row.grid(row=9, column=0, columnspan=2, sticky="ew", pady=8)
+        ttk.Button(check_row, text="Check connection", command=self.check_room_connection).pack(side="left")
+        ttk.Label(check_row, textvariable=self.connection_status, style="Muted.TLabel", wraplength=650).pack(side="left", padx=12)
         setup.columnconfigure(1, weight=1)
         for i, (key, label) in enumerate((("emulator", "Included game player .exe"), ("iso", "Your game disc .iso"), ("dongle", "Your original dongle .bin"), ("ca", "Server certificate (optional)"))):
             self._row(setup, i, label, self.values[key], browse=key)
         ttk.Label(setup, text="Graphics profile").grid(row=6, column=0, sticky="w", pady=14)
         ttk.Combobox(setup, textvariable=self.values["graphics"], values=list(GRAPHICS), state="readonly").grid(row=6, column=1, sticky="ew")
-        ttk.Label(setup, text="Enhanced OpenGL renders at 3× resolution (1920 × 1344) in a separate game window. This fixed flashing on the tested PC; some scenes still have missing scenery. F1 opens controls; Alt+Enter toggles fullscreen.", style="Muted.TLabel", wraplength=850).grid(row=7, column=0, columnspan=3, sticky="w", pady=12)
+        ttk.Label(setup, text="Enhanced OpenGL renders at 3× resolution (1920 × 1344) in a separate game window. The flashing and black scenery defects are fixed on the tested PC. F1 opens controls; Alt+Enter toggles fullscreen.", style="Muted.TLabel", wraplength=850).grid(row=7, column=0, columnspan=3, sticky="w", pady=12)
         ttk.Button(setup, text="Save and check files", command=self.save_settings).grid(row=8, column=1, sticky="w", pady=8)
         ttk.Label(setup, text="Each player supplies their disc and dongle. Cabinet setup runs automatically the first time. No separate BIOS is needed. Use Backspace for credit and Enter to start; configure a controller in the game player's settings.", style="Muted.TLabel", wraplength=850).grid(row=9, column=0, columnspan=3, sticky="w", pady=12)
 
@@ -192,6 +237,133 @@ class Launcher(tk.Tk):
         ttk.Entry(parent, textvariable=variable, show=show or "").grid(row=row, column=1, sticky="ew", pady=4)
         if browse:
             ttk.Button(parent, text="Browse", command=lambda: self.browse(browse)).grid(row=row, column=2, padx=(8, 0))
+
+    def set_controller_preset(self, preset):
+        if self.preparing or (self.emulator and self.emulator.poll() is None):
+            self.controller_status.set("Close your game before changing presets. F1 can map the running game.")
+            return
+        try:
+            from .controls import apply_preset
+            apply_preset(APP_DIR / "controls", preset=preset, controller_index=int(self.controller_slot.get())-1)
+            self.controller_status.set("Preset saved for your next solo or online launch. Existing mappings will be backed up.")
+        except (ValueError, OSError) as exc:
+            self.controller_status.set("Could not save preset: " + str(exc))
+
+    def toggle_controller_test(self):
+        self.testing_controller = not self.testing_controller
+        if not self.testing_controller:
+            self.controller_status.set("Controller test stopped.")
+            return
+        try:
+            from .controls import XInputReader
+            if self.controller_reader is None:
+                self.controller_reader = XInputReader()
+            if not self.controller_reader.available:
+                raise RuntimeError(self.controller_reader.error or "Windows XInput is unavailable. Use F1 in the game for manual mapping.")
+            self.poll_controller()
+        except (OSError, RuntimeError) as exc:
+            self.testing_controller = False
+            self.controller_status.set(str(exc))
+
+    def poll_controller(self):
+        if self.closing or not self.testing_controller:
+            return
+        try:
+            states = self.controller_reader.poll()
+            self.controller_status.set("\n".join(f"{state.name}: {', '.join(state.buttons) or 'No buttons pressed'}\nLeft stick {state.left_stick} · Right stick {state.right_stick} · Triggers {state.left_trigger}/{state.right_trigger}" for state in states) if states else
+                "No Xbox-compatible controller detected. Connect one, or use F1 in the game for DirectInput controllers.")
+        except (OSError, RuntimeError) as exc:
+            self.controller_status.set("Controller test: " + str(exc))
+        self.after(120, self.poll_controller)
+
+    def connection_parameters(self):
+        host = self.values["host"].get().strip()
+        port = int(self.values["port"].get())
+        if not 1 <= port <= 65535:
+            raise ValueError("Enter a port between 1 and 65535.")
+        context = None
+        if self.values["tls"].get():
+            context = ssl.create_default_context(cafile=self.values["ca"].get().strip() or None)
+        elif host not in ("localhost", "127.0.0.1", "::1"):
+            raise ValueError("Paste a secure invitation before checking a remote server.")
+        return host, port, context
+
+    def check_room_connection(self):
+        if self.health_busy:
+            return
+        if self.client and self.connected:
+            self.measure_room_latency()
+            return
+        try:
+            host, port, context = self.connection_parameters()
+        except (ValueError, OSError) as exc:
+            self.connection_status.set(str(exc))
+            return
+        self.health_busy = True
+        self.connection_status.set("Checking server identity and connection…")
+        async def check():
+            try:
+                result = await check_connection(host, port, ssl_context=context)
+                return result, None
+            except Exception as exc:
+                return None, str(exc)
+        def done(outcome):
+            self.health_busy = False
+            result, error = outcome
+            if error:
+                self.connection_status.set("Connection failed: " + error)
+            else:
+                secure = "Verified TLS" if result.get("tls_verified") else "Local connection"
+                self.connection_status.set(f"{secure} · {result['connect_ms']:.0f} ms to connect. A full Internet match still needs testing.")
+        self.submit(check(), done)
+
+    def measure_room_latency(self):
+        if self.health_busy or not self.client or not self.connected:
+            return
+        self.health_busy = True
+        client = self.client
+        async def measure():
+            try:
+                return await client.measure_latency(samples=3, timeout=2), None
+            except Exception as exc:
+                return None, str(exc)
+        def done(outcome):
+            self.health_busy = False
+            if self.client is not client:
+                return
+            result, error = outcome
+            if error or result.get("rtt_ms") is None:
+                self.connection_status.set("Connection check failed; check the server or Internet connection.")
+            else:
+                variation = f"{result['jitter_ms']:.0f} ms" if result.get("jitter_ms") is not None else "not enough samples"
+                self.connection_status.set(f"Server round trip {result['rtt_ms']:.0f} ms · variation {variation} · {result['timeouts']} timed out. Not a game-latency measurement.")
+        self.submit(measure(), done)
+
+    def publish_player_status(self, launch_state=None, launch_error=""):
+        if not self.client or not self.connected:
+            return
+        if "member_status" not in self.client.state.get("capabilities", []):
+            return
+        arguments = {"team_preference": self.team_preference.get()}
+        if launch_state:
+            arguments.update(launch_state=launch_state, launch_error=launch_error)
+        def failed(error):
+            own = next((m for m in self.client.state.get("members", []) if m.get("member_id") == self.client.member_id), {}) if self.client else {}
+            self.team_preference.set(own.get("team_preference", "Auto"))
+            self.status.set(error)
+        self.submit(self.client.member_status(**arguments), error=failed)
+
+    def join_launch(self):
+        if self.preparing or (self.emulator and self.emulator.poll() is None):
+            self.status.set("Close your current game before joining and launching another.")
+            return
+        self.connect_room(False, auto_launch=True)
+
+    def launch_solo(self):
+        if self.connected:
+            self.status.set("Leave your online room before starting solo play.")
+            return
+        self.launch_game(mode="solo")
 
     def browse(self, key):
         chosen = filedialog.askopenfilename(parent=self, title=f"Select {key}")
@@ -208,15 +380,15 @@ class Launcher(tk.Tk):
     def _readiness(self):
         labels = {"emulator": "included game player", "iso": "disc", "dongle": "dongle"}
         missing = [label for k, label in labels.items() if not self.values[k].get() or not Path(self.values[k].get()).is_file()]
-        self.readiness.configure(text="Game setup needs: " + ", ".join(missing) if missing else "Game files found. Join a room, then launch your game.")
+        self.readiness.configure(text="Game setup needs: " + ", ".join(missing) if missing else "Game files found. Play solo or join a private room.")
 
-    def submit(self, coro, success=None):
+    def submit(self, coro, success=None, error=None):
         f = asyncio.run_coroutine_threadsafe(coro, self.loop)
         def finished(future):
             try:
                 self.messages.put(("result", success, future.result()))
             except Exception as exc:
-                self.messages.put(("error", None, str(exc)))
+                self.messages.put(("error", error, str(exc)))
         f.add_done_callback(finished)
 
     def poll(self):
@@ -224,8 +396,10 @@ class Launcher(tk.Tk):
             while True:
                 kind, callback, data = self.messages.get_nowait()
                 if kind == "error":
+                    if callback:
+                        callback(data)
+                        continue
                     self.status.set("Could not complete: " + data)
-                    self.preparing = False
                     if self.starting_host:
                         self.starting_host = False
                         self.host_status.set("Could not start the server: " + data)
@@ -236,12 +410,26 @@ class Launcher(tk.Tk):
                     callback(data)
         except queue.Empty:
             pass
+        running = bool(self.emulator and self.emulator.poll() is None)
+        if self.last_game_running and not running:
+            self.status.set("Game closed. You can launch again or change controller presets.")
+            self.publish_player_status("idle")
+        self.last_game_running = running
+        bridge_connected = bool(self.bridge and self.bridge.connected.is_set())
+        if running and self.connected and bridge_connected != self.last_bridge_connected:
+            self.publish_player_status("connected" if bridge_connected else "error",
+                                       "Game link disconnected" if not bridge_connected else "")
+        self.last_bridge_connected = bridge_connected
+        if self.connected and time.monotonic() >= self.next_health_check:
+            self.next_health_check = time.monotonic() + 15
+            self.measure_room_latency()
         if not self.closing:
             self.after(100, self.poll)
 
     def _buttons(self):
-        self.create_button.configure(state="disabled" if self.connected else "normal")
-        self.join_button.configure(state="disabled" if self.connected else "normal")
+        self.create_button.configure(state="disabled" if self.connected or self.preparing else "normal")
+        self.join_button.configure(state="disabled" if self.connected or self.preparing else "normal")
+        self.solo_button.configure(state="disabled" if self.connected or self.preparing else "normal")
         for button in (self.leave_button, self.copy_button, self.ready_button, self.launch_button):
             button.configure(state="normal" if self.connected else "disabled")
         self.start_button.configure(state="normal" if self.connected else "disabled")
@@ -291,6 +479,7 @@ class Launcher(tk.Tk):
             self.values['port'].set(str(port))
             self.values['tls'].set(True)
             self.values['ca'].set(str(cert))
+            self.save_settings()
             self.host_status.set(f"Server listening on TCP {port}. Friends will use {address}:{port}. Router reachability has not been verified. Return to Playroom to create a room.")
             self.status.set("Encrypted host is running. Create a private room in Playroom.")
         self.submit(start(), done)
@@ -325,7 +514,7 @@ class Launcher(tk.Tk):
         except (ValueError, TypeError, OSError, tk.TclError) as exc:
             self.status.set("Could not read invitation: " + str(exc))
 
-    def connect_room(self, create):
+    def connect_room(self, create, auto_launch=False):
         if self.connected:
             return
         host = self.values["host"].get().strip()
@@ -378,6 +567,9 @@ class Launcher(tk.Tk):
             self._buttons()
             self.render_room(result["room"])
             self.status.set("Connected. Share the room code and passcode privately; each player launches their own game.")
+            self.publish_player_status("idle")
+            if auto_launch:
+                self.launch_game()
         self.submit(connect(), done)
 
     def render_room(self, state):
@@ -404,7 +596,12 @@ class Launcher(tk.Tk):
             members = list(members.values())
         for i, label in enumerate(self.seats):
             member = next((m for m in members if m and m.get("cabinet_id") == i + 1), None)
-            label.configure(text=f"CABINET {i + 1}   ·   " + (f"{member.get('name', 'Player')}   {'READY' if member.get('ready') else 'IN ROOM'}" if member else "Waiting for player"))
+            detail = "Waiting for player"
+            if member:
+                phases = {"idle":"In room", "loading":"Preparing / booting", "connected":"Game link connected", "error":"Game needs attention"}
+                phase = phases.get(member.get("launch_state"), "In room")
+                detail = f"{member.get('name', 'Player')} · {'READY' if member.get('ready') else phase}\nTeam {member.get('team_preference', 'Auto')}"
+            label.configure(text=f"CABINET {i + 1}   ·   " + detail)
         if state.get("started"):
             self.status.set("All players ready. Coordinate the match from the game's network menu.")
 
@@ -431,8 +628,8 @@ class Launcher(tk.Tk):
         if self.client:
             self.submit(self.client.start_match(), lambda _: self.status.set("Lobby start signal sent. Use the game's controls to start the match."))
 
-    def launch_game(self):
-        if not self.client or not self.local_port:
+    def launch_game(self, mode="online"):
+        if mode == "online" and (not self.client or not self.local_port):
             return
         if self.preparing:
             return
@@ -441,16 +638,19 @@ class Launcher(tk.Tk):
             return
         self.save_settings()
         self.preparing = True
+        self._buttons()
+        if mode == "online":
+            self.publish_player_status("loading")
         self.status.set("Preparing your player cabinet. First launch can take up to a minute…")
-        client = self.client
+        client = self.client if mode == "online" else None
         renderer, scale = GRAPHICS.get(self.values["graphics"].get(), ("Vulkan", 1))
-        arguments = dict(seat=client.cabinet_id, emulator_path=self.values["emulator"].get(),
+        arguments = dict(seat=client.cabinet_id if client else 1, emulator_path=self.values["emulator"].get(),
                          iso_path=self.values["iso"].get(), dongle_path=self.values["dongle"].get(),
-                         bridge_port=self.local_port, renderer=renderer, scale=scale)
+                         bridge_port=self.local_port or 0, renderer=renderer, scale=scale, mode=mode)
 
         async def prepare():
             profile = await asyncio.to_thread(generate_play_profile, APP_DIR / "players", **arguments)
-            if self.closing or self.client is not client:
+            if self.closing or (mode == "online" and self.client is not client):
                 return None
             if not cabinet_initialized(profile.backup_ram):
                 env = profile.environment.copy()
@@ -468,18 +668,31 @@ class Launcher(tk.Tk):
                         await process.wait()
                     self.preparation_process = None
             await asyncio.to_thread(configure_cabinet, profile)
+            from .controls import sync_controls
+            await asyncio.to_thread(sync_controls, APP_DIR / "controls", profile.data_dir)
             return profile
 
         def launch(profile):
             self.preparing = False
-            if profile is None or self.closing or self.client is not client:
+            self._buttons()
+            if profile is None or self.closing or (mode == "online" and self.client is not client):
                 return
             try:
                 self.emulator = subprocess.Popen(profile.command, cwd=profile.data_dir, env=profile.environment)
-                self.status.set(f"Player {profile.seat} launched. Wait for everyone to connect, then insert credit and start.")
+                self.last_game_running = True
+                self.last_bridge_connected = False
+                self.status.set("Solo game launched. Backspace adds credit; Enter starts. F1 opens controls in Enhanced mode." if mode == "solo" else f"Player {profile.seat} launched. Wait for everyone to connect, then insert credit and start.")
             except OSError as exc:
                 self.status.set("Game cannot start: " + str(exc))
-        self.submit(prepare(), launch)
+                if mode == "online":
+                    self.publish_player_status("error", "Game could not start")
+        def failed(error):
+            self.preparing = False
+            self._buttons()
+            self.status.set("Game could not start: " + error)
+            if mode == "online":
+                self.publish_player_status("error", "Game preparation failed; check local game files")
+        self.submit(prepare(), launch, failed)
 
     async def disconnect(self):
         if self.preparation_process and self.preparation_process.returncode is None:
@@ -521,8 +734,11 @@ class Launcher(tk.Tk):
         self.destroy()
 
 
-def main():
-    Launcher().mainloop()
+def main(*, resume_host=False):
+    app = Launcher()
+    if resume_host and app.public_host.get():
+        app.after(250, app.start_host)
+    app.mainloop()
 
 
 if __name__ == "__main__":

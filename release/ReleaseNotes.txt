@@ -1,26 +1,27 @@
-SEED Destiny Online 0.3.3 - experimental release
+SEED Destiny Online 0.4.0 - solo, controllers and private-room improvements
 
-Enhanced 3x graphics now uses a separate game window. The user confirmed this
-display method is stable on the tested RTX 5090 PC after the embedded window
-continued flickering with display synchronization alone. Synchronization stays
-enabled. Missing scenery is a separate unresolved issue.
+Play solo starts the original arcade game without a room or Internet server.
+Its fresh cabinet setup and saves are separate from online seats.
 
-Normal arcade launches start automatically instead of waiting in a paused state.
-F1 opens controller settings; Alt+Enter toggles fullscreen; Escape restores a
-window; Ctrl+R pauses/resumes. Closing the game shuts down rendering first.
-The launcher rejects older Enhanced runtimes without the separate-window fix.
+The Controls tab adds Xbox and keyboard presets, a live XInput tester, safe
+backups and instructions for native F1 remapping. Custom mappings are preserved
+until the user explicitly selects another preset. Physical controller input
+remains unverified; no XInput controller was connected during qualification.
 
-Validation on the development PC: normal game startup and advancing attract
-screens, controller dialog, fullscreen/windowed transitions and window close.
-All 27 automated launcher/transport tests passed. The packaged self-test covers
-four-client encrypted room transport, not game rendering or Internet gameplay.
+Join & launch combines authenticated room entry and game startup. The newer
+host shares preparation/link/error status and preferred teams. Teams remain
+selected inside the original game. Connection checks verify TLS identity,
+while joined clients measure server round trips, variation and timeouts.
+These are connection measurements, not proof of Internet game performance.
 
-Earlier qualification with 0.3.0 completed a local four-cabinet timed 2-on-2
-round with normal results, 136,443 frames sent and 409,329 deliveries. That
-complete round has not been repeated with 0.3.3. Public-address TLS connectivity
-has passed on the host, but a full match between separate Internet PCs remains
-unverified, as do other GPUs, clean-machine setup and gameplay reconnects.
+The stable separate Enhanced window from 0.3.3 is retained. The black scenery
+defect was traced to a reused framebuffer retaining the wrong pixel format.
+The fix restored mountains and sky in both frame buffers. A cold 3x gameplay
+run captured 40 frames without the previous large black regions. This was
+verified on the RTX 5090; other GPUs and locked-60-fps performance need testing.
 
-The original disc ISO and dongle BIN are supplied by each player. No separate
-BIOS is required. Original game data and saved states are excluded. Patched
-emulator, launcher and dependency sources and notices are included.
+Validation includes real local socket/TLS tests, controller preset preservation,
+GUI workflows, and a fresh solo launch through the actual launcher. The earlier
+0.3.0 four-cabinet timed-round test is historical and has not been repeated with
+0.4.0. Full separate-PC Internet matches, other GPUs and clean-machine setup
+remain outstanding. Original game data is excluded from distribution.

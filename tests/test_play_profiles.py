@@ -83,6 +83,23 @@ class PlayProfilesTest(unittest.TestCase):
         with self.assertRaisesRegex(ProfileError, "updated bundled emulator"):
             self.profile(renderer="OpenGL", scale=3)
 
+    def test_solo_settings_never_change_online_cabinet_or_enable_bridge(self):
+        online = self.profile(4)
+        solo = self.profile(mode="solo")
+        self.assertNotEqual(solo.data_dir, online.data_dir)
+        self.assertFalse(any(key.startswith("SEED_UEPCB_") for key in solo.environment))
+        data = bytearray(32768)
+        for offset, value in [(0,b"CAPCOM CO.,LTD\0"),(0x40,b"GUNDAM SEED DESTINY\0"),(0x80,b"Ver.0.99A\0")]:
+            data[offset:offset+len(value)] = value
+        struct.pack_into("<II",data,0x1618,3,3)
+        solo.backup_ram.write_bytes(data)
+        online.backup_ram.write_bytes(data)
+        configure_cabinet(solo)
+        self.assertEqual(struct.unpack_from("<II",solo.backup_ram.read_bytes(),0x1618),(0,0))
+        self.assertEqual(online.backup_ram.read_bytes(),data)
+        with self.assertRaises(ProfileError):
+            self.profile(4,mode="solo")
+
 
 if __name__ == "__main__":
     unittest.main()

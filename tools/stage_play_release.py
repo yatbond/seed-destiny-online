@@ -14,22 +14,22 @@ crt=Path(r'C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\VC\Redis
 for dll in crt.glob('*.dll'):shutil.copy2(dll,target/dll.name)
 sources=package/'sources';sources.mkdir(exist_ok=True)
 source_stage=base/'release-0.3-sources'
-for name in ('play-patched-source-0.3.3.zip','qtbase-everywhere-src-5.15.2.tar.xz','zlib132.zip','manifest.json'):
+for name in ('play-patched-source-0.4.0.zip','qtbase-everywhere-src-5.15.2.tar.xz','zlib132.zip','manifest.json'):
     shutil.copy2(source_stage/name,sources/name)
 shutil.copytree(source_stage/'licenses',package/'licenses',dirs_exist_ok=True)
 for name in ('README.md',):shutil.copy2(project/name,package/name)
 for name in ('PlayBuild.txt','BuildPlay.cmd'):shutil.copy2(project/'release'/name,sources/name)
-for name in ('HostSetup.txt','ReleaseNotes.txt','Validation.json'):
+for name in ('HostSetup.txt','ReleaseNotes.txt','Validation.json','Controls.txt','InternetTest.txt'):
     shutil.copy2(project/'release'/name,package/name)
 shutil.copy2(project/'installer/GettingStarted.txt',package/'GettingStarted.txt')
-with zipfile.ZipFile(sources/'launcher-source-0.3.3.zip','w',zipfile.ZIP_DEFLATED) as archive:
+with zipfile.ZipFile(sources/'launcher-source-0.4.0.zip','w',zipfile.ZIP_DEFLATED) as archive:
     for name in ('launch.py','relay.py','requirements.txt','Play SEED Destiny.cmd','Start room host.ps1','README.md'):
         archive.write(project/name,name)
     for folder in ('seedrooms','tests','tools','installer'):
         for p in (project/folder).rglob('*'):
             if p.is_file() and '__pycache__' not in p.parts and p.suffix in ('.py','.txt','.iss','.ps1','.cmd'):
                 archive.write(p,p.relative_to(project).as_posix())
-notices='''SEED Destiny Online 0.3.3 - component notices
+notices='''SEED Destiny Online 0.4.0 - component notices
 
 The modified Play! executable incorporates PCSX2 GPL-3.0-or-later code.
 Its corresponding patched source and submodules are in sources. Original

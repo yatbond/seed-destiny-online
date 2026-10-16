@@ -1,0 +1,20 @@
+SEPARATE-PC INTERNET MATCH CHECK
+
+Use four Windows PCs, with at least one on a different Internet connection.
+Each player needs their own original disc ISO and dongle BIN. Use 0.4.0 on
+the host and clients to share game-link status and team preferences.
+
+1. Host TCP 7443 on a reachable address. Share the invitation and passcode
+privately. Each guest uses Check connection; TLS must verify successfully.
+2. Enter all four players, choose preferred teams, and Join & launch. The host
+uses Launch my game. Record the reported server RTT/variation and timeouts.
+3. Wait for all original games to link. Insert credit, start, and choose the
+same actual teams inside the game. Confirm every viewpoint responds to input.
+4. Play a complete timed round through results on every PC. Record slowdowns,
+desynchronization, freezes, errors and whether all players reach the next menu.
+5. In a separate test match, leave/disconnect one PC and record recovery. Do
+not assume the emulator supports seamless in-game rejoining.
+
+Connection checks and local four-client tests cannot substitute for this.
+Do not share private-key.pem, passcodes, ROM data or saved machine states in
+public reports. Keep the VPN configuration intact while diagnosing routes.

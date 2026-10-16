@@ -1,0 +1,22 @@
+SEED Destiny controls
+
+Connect your Windows controller before starting the game.
+Choose an Xbox preset for XInput controllers, or Keyboard to restore the default keys.
+The live tester shows XInput devices only; DirectInput controllers can still be mapped in the game.
+
+For custom mapping, press F1 in the game, select Pad1, and double-click a row.
+Hold the desired button until accepted (about three seconds), then Apply and OK.
+Config All guides you through the rows. Profile(s) lets you save separate layouts.
+Each online player uses Pad1 on their own PC. Use the D-pad for arcade movement.
+
+Keyboard: Backspace inserts credit; Enter starts; arrow keys move.
+Z shoots (CROSS); X performs melee or confirms a selection (CIRCLE).
+S jumps/boosts (TRIANGLE); A changes target (SQUARE).
+Xbox preset: View inserts credit; Menu starts; the D-pad moves.
+X shoots; Y performs melee or confirms; A jumps/boosts; B changes target.
+These actions were checked in an original-game battle. Suit-specific weapons and combos vary.
+Alt+Enter toggles fullscreen; Escape returns to a window; Ctrl+R pauses/resumes.
+
+Apply presets with the game closed. Existing mappings are backed up before replacement.
+A newly selected launcher preset is copied to each player's settings on the next launch.
+Later F1 custom edits are kept until you select another launcher preset.

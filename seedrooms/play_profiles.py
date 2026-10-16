@@ -28,6 +28,7 @@ class PlayProfile:
     command: list[str]
     environment: dict[str, str]
     backup_ram: Path
+    mode: str = "online"
 
     @property
     def preparation_command(self) -> list[str]:
@@ -48,8 +49,9 @@ def configure_cabinet(profile: PlayProfile) -> None:
         raise ProfileError("The game has not finished preparing its cabinet settings. Please retry.")
     data = bytearray(profile.backup_ram.read_bytes())
     # Compared with all four original Exit & Save service-menu results.
-    struct.pack_into("<I", data, 0x1618, profile.seat - 1)
-    struct.pack_into("<I", data, 0x161c, 3)
+    struct.pack_into("<I", data, 0x1618, profile.seat - 1 if profile.mode == "online" else 0)
+    # The original game's standalone cabinet settings are 0,0 at these fields.
+    struct.pack_into("<I", data, 0x161c, 3 if profile.mode == "online" else 0)
     temporary = profile.backup_ram.with_suffix(".tmp")
     temporary.write_bytes(data)
     temporary.replace(profile.backup_ram)
@@ -57,11 +59,16 @@ def configure_cabinet(profile: PlayProfile) -> None:
 
 def generate_play_profile(output_root: str | Path, *, seat: int,
                           emulator_path: str | Path, iso_path: str | Path,
-                          dongle_path: str | Path, bridge_port: int,
-                          renderer: str = "Vulkan", scale: int = 1) -> PlayProfile:
+                          dongle_path: str | Path, bridge_port: int = 0,
+                          renderer: str = "Vulkan", scale: int = 1,
+                          mode: str = "online") -> PlayProfile:
+    if mode not in ("solo", "online"):
+        raise ProfileError("Choose solo or online play")
     if type(seat) is not int or seat not in range(1, 5):
         raise ProfileError("Player number must be 1–4")
-    if type(bridge_port) is not int or not 1 <= bridge_port <= 65535:
+    if mode == "solo" and seat != 1:
+        raise ProfileError("Solo play uses player 1")
+    if mode == "online" and (type(bridge_port) is not int or not 1 <= bridge_port <= 65535):
         raise ProfileError("Invalid local room connection")
     if renderer not in ("Vulkan", "OpenGL") or scale not in (1, 2, 3, 4, 6):
         raise ProfileError("Unsupported graphics setting")
@@ -84,7 +91,7 @@ def generate_play_profile(output_root: str | Path, *, seat: int,
     card = dongle.read_bytes()
     if len(card) not in (8388608, 8650752) or not card.startswith(b"Sony PS2 Memory Card Format "):
         raise ProfileError("Select the original 8 MiB PS2 dongle dump, with or without ECC")
-    root = Path(output_root).expanduser().resolve() / f"seat-{seat}" / "Play"
+    root = Path(output_root).expanduser().resolve() / ("solo" if mode == "solo" else f"seat-{seat}") / "Play"
     if any(p.is_relative_to(root) for p in (exe, iso, dongle)):
         raise ProfileError("Keep original game files and the emulator outside the player settings folder")
     data = root / "Play Data Files"
@@ -140,6 +147,10 @@ def generate_play_profile(output_root: str | Path, *, seat: int,
     temporary.replace(config_path)
     env = os.environ.copy()
     env.update(SEED_UEPCB_ENABLE="1", SEED_UEPCB_SEAT=str(seat), SEED_UEPCB_BRIDGE_PORT=str(bridge_port))
+    if mode == "solo":
+        for key in tuple(env):
+            if key.startswith("SEED_UEPCB_"):
+                env.pop(key)
     env.pop("SEED_UEPCB_NETIF_FIX", None)
     env.pop("SEED_UEPCB_FORCE_DRIVER", None)
     # Match completed OpenGL frames to display refresh. The bundled runtime
@@ -150,4 +161,4 @@ def generate_play_profile(output_root: str | Path, *, seat: int,
     else:
         env.pop("SEED_GL_SWAP_INTERVAL", None)
         env.pop("SEED_GL_DETACHED", None)
-    return PlayProfile(seat, root, [str(exe), "--arcade", GAME_ID], env, saves / (GAME_ID + ".backupram"))
+    return PlayProfile(seat, root, [str(exe), "--arcade", GAME_ID], env, saves / (GAME_ID + ".backupram"), mode)

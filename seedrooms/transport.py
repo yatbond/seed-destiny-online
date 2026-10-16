@@ -23,6 +23,9 @@ import time
 JSON, FRAME = 1, 2
 MAX_JSON, MAX_FRAME, MIN_FRAME = 8192, 2048, 14
 SLOTS = ("A1", "A2", "B1", "B2")
+CAPABILITIES = ("member_status", "connection_probe")
+LAUNCH_STATES = ("idle", "loading", "connected", "error")
+TEAM_PREFERENCES = ("Auto", "A", "B")
 QUEUE_LIMIT = 256
 HEADER = struct.Struct("!BI")
 
@@ -90,6 +93,9 @@ class Peer:
     slot: int = 0
     name: str = "Player"
     ready: bool = False
+    launch_state: str = "idle"
+    launch_error: str = ""
+    team_preference: str = "Auto"
     writer_task: asyncio.Task | None = None
     control_times: deque = field(default_factory=deque)
     frame_window: float = 0
@@ -113,9 +119,12 @@ class Room:
             "started": self.started,
             "owner_id": self.owner_id,
             "capacity": 4,
+            "capabilities": list(CAPABILITIES),
             "members": [
                 {"member_id": p.member_id, "name": p.name, "slot": SLOTS[i],
-                 "cabinet_id": i + 1, "ready": p.ready}
+                 "cabinet_id": i + 1, "ready": p.ready,
+                 "launch_state": p.launch_state, "launch_error": p.launch_error,
+                 "team_preference": p.team_preference}
                 for i, p in sorted(self.members.items())
             ],
         }
@@ -287,6 +296,12 @@ class RelayServer:
             raise ProtocolError("Control message rate limit reached")
         peer.control_times.append(now)
         if peer.room is None:
+            if message.get("op") == "probe":
+                # Server identity comes from verified TLS. No room/password or
+                # membership is exposed; the connection closes after one reply.
+                self._reply(peer, request_id, ok=True, protocol="seed-room-v1",
+                            capabilities=list(CAPABILITIES))
+                return
             await self._authenticate(peer, message)
             return
         token = message.get("session_token")
@@ -296,11 +311,36 @@ class RelayServer:
         operation = message.get("op")
         if operation == "status":
             pass
+        elif operation == "member_status":
+            launch = message.get("launch_state", peer.launch_state)
+            team = message.get("team_preference", peer.team_preference)
+            error = message.get("launch_error", "")
+            if launch not in LAUNCH_STATES or team not in TEAM_PREFERENCES:
+                raise ProtocolError("Invalid launch state or team preference")
+            if not isinstance(error, str) or len(error) > 160 or any(ord(c) < 32 for c in error):
+                raise ProtocolError("Launch error must be at most 160 printable characters")
+            if team != peer.team_preference:
+                if room.started:
+                    raise ProtocolError("Reset the lobby before changing team preference")
+                if team != "Auto" and sum(p is not peer and p.team_preference == team
+                                           for p in room.members.values()) >= 2:
+                    raise ProtocolError("Two players already prefer that team")
+                # Preferences never reassign cabinet IDs or game-side teams.
+                for member in room.members.values():
+                    member.ready = False
+            peer.team_preference = team
+            peer.launch_state = launch
+            peer.launch_error = error if launch == "error" else ""
+            if launch != "connected":
+                peer.ready = False
+            self._publish(room)
         elif operation == "ready":
             if type(message.get("ready")) is not bool:
                 raise ProtocolError("Ready must be true or false")
             if room.started:
                 raise ProtocolError("Reset the lobby before changing readiness")
+            if message["ready"] and peer.launch_state in ("loading", "error"):
+                raise ProtocolError("Wait for the game connection before marking ready")
             peer.ready = message["ready"]
             self._publish(room)
         elif operation == "start":
@@ -340,6 +380,9 @@ class RelayServer:
                 finally:
                     # Avoid retaining plaintext in the long-lived read loop.
                     message.pop("passcode", None)
+            if peer.room is None:
+                await asyncio.wait_for(peer.queue.join(), 2)
+                return
             while True:
                 kind, payload = await read_packet(peer.reader)
                 if kind == FRAME:

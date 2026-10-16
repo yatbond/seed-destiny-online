@@ -8,8 +8,8 @@
 [Setup]
 AppId={{6C6DB74B-7324-4972-AF0E-D8D2AB7DB829}
 AppName=SEED Destiny Online
-AppVersion=0.3.3
-AppVerName=SEED Destiny Online 0.3.3 (experimental)
+AppVersion=0.4.0
+AppVerName=SEED Destiny Online 0.4.0 (experimental)
 AppPublisher=SEED Destiny Online community project
 DefaultDirName={localappdata}\Programs\SeedDestinyOnline
 DefaultGroupName=SEED Destiny Online
@@ -19,7 +19,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 OutputDir={#OutputDir}
-OutputBaseFilename=SeedDestinyOnline-Setup-0.3.3
+OutputBaseFilename=SeedDestinyOnline-Setup-0.4.0
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern

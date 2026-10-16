@@ -12,7 +12,9 @@ import asyncio
 import getpass
 import json
 import ssl
+import statistics
 import struct
+import time
 
 from .transport import (FRAME, JSON, MAX_FRAME, MIN_FRAME, ProtocolError,
                         encode_frame, encode_json, is_loopback, parse_json,
@@ -68,7 +70,7 @@ class RoomClient:
             except (OSError, asyncio.TimeoutError) as exc:
                 raise RoomError("Relay write failed") from exc
 
-    async def _request(self, operation: str, **data) -> dict:
+    async def _request(self, operation: str, *, _timeout: float = 20, **data) -> dict:
         if len(self._pending) >= 32:
             raise RoomError("Too many pending room requests")
         self._sequence += 1
@@ -79,10 +81,13 @@ class RoomClient:
         if self.session_token:
             request["session_token"] = self.session_token
         try:
-            await self._send(encode_json(request))
-            result = await asyncio.wait_for(future, 20)
+            async with asyncio.timeout(_timeout):
+                await self._send(encode_json(request))
+                result = await future
         finally:
             self._pending.pop(request_id, None)
+            if not future.done():
+                future.cancel()
         if not result.get("ok"):
             raise RoomError(result.get("error", "Room request rejected"))
         if "state" in result:
@@ -113,6 +118,50 @@ class RoomClient:
 
     async def reset_lobby(self) -> dict:
         return (await self._request("reset"))["state"]
+
+    async def member_status(self, *, launch_state: str | None = None,
+                            team_preference: str | None = None,
+                            launch_error: str = "") -> dict:
+        """Report this player's launch progress and intended team, not game state.
+
+        Older hosts remain usable, but cannot share this optional information.
+        Cabinet IDs and the original game's team selection are never changed.
+        """
+        if "member_status" not in self.state.get("capabilities", []):
+            raise RoomError("This host needs an update to share game status and team preferences")
+        data = {"launch_error": launch_error}
+        if launch_state is not None:
+            data["launch_state"] = launch_state
+        if team_preference is not None:
+            data["team_preference"] = team_preference
+        return (await self._request("member_status", **data))["state"]
+
+    async def measure_latency(self, *, samples: int = 3, timeout: float = 2) -> dict:
+        """Measure relay request RTT, not game latency or network packet loss.
+
+        Uses authenticated status requests supported by older hosts. A bounded
+        sample avoids adding continuous load to the arcade Ethernet relay.
+        """
+        if type(samples) is not int or not 1 <= samples <= 5:
+            raise ValueError("Use one through five latency samples")
+        if not 0.05 <= timeout <= 5:
+            raise ValueError("Latency timeout must be 0.05 through 5 seconds")
+        if not self.session_token:
+            raise RoomError("Join a room before measuring relay latency")
+        elapsed = []
+        timeouts = 0
+        for _ in range(samples):
+            started = time.perf_counter()
+            try:
+                await self._request("status", _timeout=timeout)
+            except asyncio.TimeoutError:
+                timeouts += 1
+            else:
+                elapsed.append((time.perf_counter() - started) * 1000)
+        return {"rtt_ms": round(statistics.median(elapsed), 2) if elapsed else None,
+                "jitter_ms": round(max(elapsed) - min(elapsed), 2) if len(elapsed) > 1 else None,
+                "samples": samples, "responses": len(elapsed), "timeouts": timeouts,
+                "connected": self.connected, "measurement": "relay_request_round_trip"}
 
     async def send_frame(self, frame: bytes) -> None:
         if not self.session_token:

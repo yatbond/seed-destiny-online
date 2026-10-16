@@ -39,7 +39,7 @@ manifest = {'play_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd
             'qt_source':{'url':qt_url,'sha256':qt_hash}, 'files':{}}
 patch = subprocess.check_output(['git','diff','--binary'],cwd=source)
 (project/'evidence/play-probe-local.patch').write_bytes(patch)
-archive_path = destination/'play-patched-source-0.3.3.zip'
+archive_path = destination/'play-patched-source-0.4.0.zip'
 with zipfile.ZipFile(archive_path,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as archive:
     for name in files:
         file = source/name

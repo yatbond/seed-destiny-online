@@ -1,13 +1,18 @@
 {
-  "version": "0.3.3",
-  "emulator_sha256": "8f1ca46a3ffcc9a89a97f32400005a6f1bd2cfa68312e6801125dee3e8264488",
+  "version": "0.4.0",
+  "emulator_sha256": "9cd6f1687a487f558b0df86adb10743070f58465d9f2de268860262b5c6647e4",
   "enhanced_graphics": {
     "resolution": "1920 x 1344",
     "presentation": "separate OpenGL window with display synchronization",
     "user_observation": "This one is stable",
     "tested_gpu": "NVIDIA RTX 5090",
-    "missing_scenery_resolved": false,
-    "other_gpus_verified": false
+    "missing_scenery_resolved": true,
+    "other_gpus_verified": false,
+    "scenery_fix_scope": "Observed OpenGL reused-framebuffer defect; cold 3x run on RTX 5090",
+    "cold_run_seconds": 140,
+    "cold_run_captures": 40,
+    "large_black_region_captures": 0,
+    "locked_60fps_verified": false
   },
   "normal_launch": {
     "automatic_start_observed": true,
@@ -16,7 +21,7 @@
     "window_close_exited_process": true,
     "keyboard_coin_input_verified": false
   },
-  "automated_tests_passed": 27,
+  "automated_tests_passed": 44,
   "packaged_transport_selftest_passed": true,
   "external_bios_required": false,
   "clean_machine_verified": false,
@@ -30,5 +35,13 @@
     "sent_frames": 136443,
     "delivered_frames": 409329,
     "emulator_sha256": "2365bb16e044a1763a8debdb322d7fec1679359603107e8c988314f9643ea882"
+  },
+  "features": {
+    "solo_fresh_launcher_boot_verified": true,
+    "controller_presets_and_backups_tested": true,
+    "physical_controller_verified": false,
+    "join_launch_authentication_tested": true,
+    "room_health_and_preference_socket_tests": true,
+    "game_action_labels_verified": true
   }
 }
