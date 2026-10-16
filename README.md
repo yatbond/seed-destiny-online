@@ -1,24 +1,24 @@
-# SEED Destiny Online 0.3.2 — Windows experimental release
+# SEED Destiny Online 0.3.3 — Windows experimental release
 
-[Download the Windows installer](https://github.com/yatbond/seed-destiny-online/releases/tag/v0.3.2).
-This prerelease adds display synchronization for Enhanced mode. Visual confirmation is pending; missing scenery and separate-PC Internet qualification remain outstanding. Bring your own disc ISO and dongle BIN.
+[Download the Windows installer](https://github.com/yatbond/seed-destiny-online/releases/tag/v0.3.3).
+Enhanced 3× now uses the separate game window confirmed stable on the tested PC. Missing scenery and separate-PC Internet match qualification remain outstanding. Bring your own disc ISO and dongle BIN.
 
 Runs the original NM00034 / GSD1 **SEED Destiny: Rengou vs. Z.A.F.T. II** with a modified Play! emulator and private, passcode-protected four-player rooms. Each player supplies their original disc ISO and dongle BIN. **No separate arcade BIOS is required.**
 
-Local four-instance 2-on-2 combat has been verified through the encrypted room relay, including movement, attacks and damage. A fresh-profile launcher test completed a timed round and showed normal results on all four cabinets. Enhanced 3× now synchronizes presentation to the display to address reported flashing. The driver setting is verified; visual confirmation is pending and missing scenery remains unresolved. Original Vulkan remains recommended. Internet gameplay between separate PCs remains unverified; router reachability and real Internet latency need an external test.
+Local four-instance 2-on-2 combat has been verified through the encrypted room relay, including movement, attacks and damage. A fresh-profile launcher test completed a timed round and showed normal results on all four cabinets. Enhanced 3× now uses a separate game window, which the user confirmed is stable on the tested RTX 5090 PC. Missing scenery remains unresolved. Public-address encrypted connectivity has passed on the host; a complete Internet match between separate PCs remains unverified.
 
 ## Install and play
 
-Use `dist/SeedDestinyOnline-Setup-0.3.2.exe`. Installation is per Windows account, with no administrator rights needed. It includes the launcher, emulator, libraries and corresponding source archives. Original game files and saved machine states are excluded. The older 0.2.1 installer is superseded.
+Use `dist/SeedDestinyOnline-Setup-0.3.3.exe`. Installation is per Windows account, with no administrator rights needed. It includes the launcher, emulator, libraries and corresponding source archives. Original game files and saved machine states are excluded. The older 0.2.1 installer is superseded.
 
 1. Open **Game & graphics**, select your disc ISO and original dongle BIN, and save.
 2. In **Playroom**, paste the host's invitation. Enter your name and separately supplied passcode, then join.
 3. Select **Launch my game**. First launch initializes cabinet settings automatically; allow up to a minute. Cabinet IDs 1–4 follow the room seats.
 4. Wait for all four players to launch and finish linking. Insert credit, start, and select teams and arena in the original game menus. The launcher's Ready/start buttons only coordinate players.
 
-Keyboard: **Backspace** inserts credit, **Enter** starts, arrows move, and **A / S / X / Z** map to Square / Triangle / Circle / Cross. Configure a gamepad in the emulator's controller settings. **Alt+Enter** toggles fullscreen. Avoid saved machine states during linked play.
+Keyboard: **Backspace** inserts credit, **Enter** starts, arrows move, and **A / S / X / Z** map to Square / Triangle / Circle / Cross. In Enhanced mode, **F1** opens controller settings, **Alt+Enter** toggles fullscreen, **Escape** returns to windowed mode, and **Ctrl+R** pauses or resumes. Avoid saved machine states during linked play.
 
-**Original · Vulkan** uses native resolution and is the recommended mode. **Enhanced 3× · OpenGL** uses 1920 × 1344, preserving the original 4:3 shape. It sharpens existing assets; no replacement textures, lighting or geometry are included. Version 0.3.2 enables display synchronization before the enhanced window is created, replacing unsynchronized presentation. The NVIDIA driver reports swap interval 1 and double buffering. This is a targeted change for reported flashing; a successful automated run does not prove temporal visual stability. User confirmation is pending. Black regions in some distant scenery remain unresolved. Original Vulkan remains the stable option.
+**Original · Vulkan** uses native resolution and is the recommended mode. **Enhanced 3× · OpenGL** uses 1920 × 1344, preserving the original 4:3 shape. It sharpens existing assets; no replacement textures, lighting or geometry are included. Version 0.3.3 presents Enhanced mode in its own window instead of embedding it inside the emulator interface. The user confirmed this display method is stable on the tested RTX 5090 PC. Display synchronization remains enabled. Normal launches now start automatically, and closing the game shuts down its rendering thread before destroying the display. Black regions in some distant scenery remain unresolved; other GPUs need testing.
 
 Separate cabinet settings and saves live under `%LOCALAPPDATA%/SeedDestinyOnline/players/seat-N/Play/`. Original disc/dongle files are read-only inputs. Uninstalling preserves settings and saves. Avoid two instances using the same seat profile. Leaving a room disconnects the game link but keeps the game window open.
 
@@ -49,7 +49,7 @@ Passcodes use salted scrypt hashes; remote connections require certificate-verif
 
 Run `python -m unittest discover -s tests -v` here. Tests use temporary local ports and do not launch the game. `SeedDestinyOnline.exe --self-test output.json` checks installed dependencies and four-client encrypted transport; it is not a game or Internet test. Original binaries, saved game states and investigation screenshots are excluded from distribution.
 
-Outstanding checks include separate-PC Internet matches, actual gameplay disconnect/rejoin, other GPUs, and clean-machine installation beyond this development PC. A local installer does not imply a published download or public room server.
+Outstanding checks include separate-PC Internet matches, actual gameplay disconnect/rejoin, other GPUs, and clean-machine installation beyond this development PC. The four-cabinet timed-round qualification used version 0.3.0 and has not been repeated with 0.3.3.
 
 ## Source and credits
 

@@ -1,23 +1,34 @@
 {
-  "all_exit_codes_zero": true,
-  "enhanced_graphics": "Display synchronization enabled and driver-confirmed; visual confirmation pending. Missing scenery unresolved.",
-  "sent_frames": 136443,
-  "delivered_frames": 409329,
-  "installed_transport_selftest_passed": true,
-  "version": "0.3.2",
-  "local_timed_round_completed": true,
-  "external_bios_required": false,
-  "installed_game_preparation_passed": true,
-  "real_game_instances": 4,
+  "version": "0.3.3",
+  "emulator_sha256": "8f1ca46a3ffcc9a89a97f32400005a6f1bd2cfa68312e6801125dee3e8264488",
+  "enhanced_graphics": {
+    "resolution": "1920 x 1344",
+    "presentation": "separate OpenGL window with display synchronization",
+    "user_observation": "This one is stable",
+    "tested_gpu": "NVIDIA RTX 5090",
+    "missing_scenery_resolved": false,
+    "other_gpus_verified": false
+  },
+  "normal_launch": {
+    "automatic_start_observed": true,
+    "controller_dialog_open_close": true,
+    "fullscreen_and_escape": true,
+    "window_close_exited_process": true,
+    "keyboard_coin_input_verified": false
+  },
   "automated_tests_passed": 27,
+  "packaged_transport_selftest_passed": true,
+  "external_bios_required": false,
   "clean_machine_verified": false,
   "internet_match_verified": false,
-  "enhanced_flicker_fixed": false,
-  "native_emulator_unchanged_since_0_3_0": false,
-  "previous_gameplay_emulator_sha256": "2365bb16e044a1763a8debdb322d7fec1679359603107e8c988314f9643ea882",
-  "emulator_sha256": "2c061f53dc1ff69b91db235eba9b9a4ffa70ec47775d227c4cafd813f460a035",
-  "gameplay_qualification_version": "0.3.0; not repeated with 0.3.2",
-  "enhanced_presentation_patch_applied": true,
-  "enhanced_three_minute_run_exit": 0,
-  "enhanced_driver_swap_interval": 1
+  "public_address_tls_connectivity_verified_on_host": true,
+  "previous_gameplay_qualification": {
+    "version": "0.3.0",
+    "repeated_with_current_version": false,
+    "local_timed_round_completed": true,
+    "real_game_instances": 4,
+    "sent_frames": 136443,
+    "delivered_frames": 409329,
+    "emulator_sha256": "2365bb16e044a1763a8debdb322d7fec1679359603107e8c988314f9643ea882"
+  }
 }

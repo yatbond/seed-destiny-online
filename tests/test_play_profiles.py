@@ -17,7 +17,7 @@ class PlayProfilesTest(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.exe = self.root / "Play.exe"
-        self.exe.write_bytes(b"MZ\0SEED_UEPCB_BRIDGE_PORT\0prepare-cabinet\0SEED_GL_SWAP_INTERVAL")
+        self.exe.write_bytes(b"MZ\0SEED_UEPCB_BRIDGE_PORT\0prepare-cabinet\0SEED_GL_SWAP_INTERVAL\0SEED_GL_DETACHED")
         self.iso = self.root / "game.iso"
         disc = bytearray(17 * 2048)
         disc[16 * 2048:16 * 2048 + 7] = b"\x01CD001\x01"
@@ -73,11 +73,13 @@ class PlayProfilesTest(unittest.TestCase):
             self.profile(renderer="Vulkan", scale=3)
 
     def test_enhanced_sync_and_old_runtime_guard(self):
-        with patch.dict("os.environ", {"SEED_GL_SWAP_INTERVAL": "0"}):
+        with patch.dict("os.environ", {"SEED_GL_SWAP_INTERVAL": "0", "SEED_GL_DETACHED": "1"}):
             enhanced = self.profile(renderer="OpenGL", scale=3)
             self.assertEqual(enhanced.environment["SEED_GL_SWAP_INTERVAL"], "1")
+            self.assertEqual(enhanced.environment["SEED_GL_DETACHED"], "1")
             self.assertNotIn("SEED_GL_SWAP_INTERVAL", self.profile().environment)
-        self.exe.write_bytes(b"MZ\0SEED_UEPCB_BRIDGE_PORT\0prepare-cabinet")
+            self.assertNotIn("SEED_GL_DETACHED", self.profile().environment)
+        self.exe.write_bytes(b"MZ\0SEED_UEPCB_BRIDGE_PORT\0prepare-cabinet\0SEED_GL_SWAP_INTERVAL")
         with self.assertRaisesRegex(ProfileError, "updated bundled emulator"):
             self.profile(renderer="OpenGL", scale=3)
 

@@ -73,8 +73,9 @@ def generate_play_profile(output_root: str | Path, *, seat: int,
     binary = exe.read_bytes()
     if binary[:2] != b"MZ" or b"SEED_UEPCB_BRIDGE_PORT" not in binary or b"prepare-cabinet" not in binary:
         raise ProfileError("Select the Play! emulator supplied with this version of SEED Destiny Online")
-    if renderer == "OpenGL" and b"SEED_GL_SWAP_INTERVAL" not in binary:
-        raise ProfileError("Enhanced graphics needs the updated bundled emulator with display synchronization")
+    if renderer == "OpenGL" and any(marker not in binary for marker in
+                                   (b"SEED_GL_SWAP_INTERVAL", b"SEED_GL_DETACHED")):
+        raise ProfileError("Enhanced graphics needs the updated bundled emulator with a separate game window")
     with iso.open("rb") as stream:
         stream.seek(16 * 2048)
         pvd = stream.read(2048)
@@ -145,6 +146,8 @@ def generate_play_profile(output_root: str | Path, *, seat: int,
     # implements this before creating its double-buffered window surface.
     if renderer == "OpenGL":
         env["SEED_GL_SWAP_INTERVAL"] = "1"
+        env["SEED_GL_DETACHED"] = "1"
     else:
         env.pop("SEED_GL_SWAP_INTERVAL", None)
+        env.pop("SEED_GL_DETACHED", None)
     return PlayProfile(seat, root, [str(exe), "--arcade", GAME_ID], env, saves / (GAME_ID + ".backupram"))

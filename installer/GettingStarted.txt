@@ -1,7 +1,7 @@
-SEED DESTINY ONLINE 0.3.2
+SEED DESTINY ONLINE 0.3.3
 
 1. PREPARE YOUR GAME
-Open Game & graphics. Select your NM00034 disc ISO and original dongle BIN. The game player is included; no separate BIOS is needed. Save. Use Original Vulkan graphics. Enhanced OpenGL now uses display synchronization to address flashing; visual confirmation is pending and missing scenery remains unresolved.
+Open Game & graphics. Select your NM00034 disc ISO and original dongle BIN. The game player is included; no separate BIOS is needed. Save. Choose Enhanced OpenGL for 3x resolution in the separate game window, confirmed stable on the tested PC. Some scenery remains missing. Original Vulkan is also available.
 
 2. JOIN A FRIEND
 Copy the complete invitation from your host. Select Paste invitation in Playroom, enter your name and separately supplied passcode, then Join room and Launch my game. First-run cabinet setup is automatic; allow up to a minute.
@@ -14,12 +14,12 @@ Forward TCP 7443 to this PC and allow the launcher through Windows Firewall. Do 
 4. START THE MATCH
 Wait until all four players have joined, launched and finished linking. Insert credit and start. Choose teams and arena in the game menus. Cabinet IDs are automatic. Ready/start in the launcher only coordinates players.
 
-Keyboard: Backspace inserts credit; Enter starts; arrows move; A/S/X/Z map to Square/Triangle/Circle/Cross. Configure your controller in the emulator's settings. Alt+Enter toggles fullscreen. Avoid saved machine states in linked matches.
+Keyboard: Backspace inserts credit; Enter starts; arrows move; A/S/X/Z map to Square/Triangle/Circle/Cross. In Enhanced mode, F1 opens controller settings, Alt+Enter toggles fullscreen, Escape returns to windowed mode, and Ctrl+R pauses/resumes. Avoid saved machine states in linked matches.
 
 Invitations contain a public certificate, never the passcode or private key. Do not share private-key.pem. Address changes require restarting hosting and sharing a fresh invitation. Leaving a room disconnects the game link but leaves the game window open.
 
 STATUS
-Local four-emulator 2-on-2 combat works. Enhanced graphics includes a display synchronization change for flashing, pending visual confirmation. Missing scenery remains unresolved. Internet matches and other GPU configurations remain experimental. See README.md for evidence and limits.
+Local four-emulator 2-on-2 combat works. The user confirmed that the separate Enhanced game window is stable on the tested RTX 5090 PC. Missing scenery remains unresolved. Internet matches and other GPU configurations remain experimental. See README.md for evidence and limits.
 
 SOURCE
 Corresponding sources are in sources; notices are in licenses. Preserve them when redistributing. Original game files are excluded.

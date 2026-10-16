@@ -1,4 +1,4 @@
-SEED Destiny Online 0.3.2 - emulator source and rebuilding
+SEED Destiny Online 0.3.3 - emulator source and rebuilding
 
 Base: https://github.com/jpd002/Play-
 Commit: d44bfa1814b729d4a3ed3c6c3a945432d5ee5bbe
@@ -29,9 +29,9 @@ Modifications include USB Ethernet and loopback room bridging, IOP clock return
 status, automatic cabinet initialization, UNC ISO handling, discrete GPU
 preference, graphics readback and bounded optional diagnostic modes. Diagnostic
 inputs and saves are enabled only by explicit command-line switches. Networking
-is enabled by the launcher's SEED_UEPCB_* environment variables. Enhanced OpenGL uses SEED_GL_SWAP_INTERVAL=1 to enable display synchronization before creating the window.
+is enabled by the launcher's SEED_UEPCB_* environment variables. Enhanced OpenGL uses SEED_GL_SWAP_INTERVAL=1 for display synchronization and SEED_GL_DETACHED=1 for a separate game window. Normal arcade launches resume automatically. The separate window supports controller settings, fullscreen and orderly rendering shutdown.
 
-The launcher source is in launcher-source-0.3.2.zip. Install Python 3.11+ with
+The launcher source is in launcher-source-0.3.3.zip. Install Python 3.11+ with
 Tk and cryptography, then run launch.py. The packaged launcher was built with
 PyInstaller 6.22.3 and cryptography 46.0.7; packaging command and Inno Setup
 recipe are in the launcher source. No firewall, VPN or router changes are made.
